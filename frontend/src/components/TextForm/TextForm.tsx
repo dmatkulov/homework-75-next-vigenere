@@ -1,8 +1,8 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {Button, Grid, TextField} from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import {MessageMutation, MessageType} from "@/src/types";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQuery} from "@tanstack/react-query";
 import axiosApi from "@/src/axiosApi";
 
 const TextForm = () => {
@@ -12,6 +12,14 @@ const TextForm = () => {
     decode: ''
   })
   
+  const {data: messageResponse, isLoading} = useQuery({
+    queryKey: ['messages'],
+    queryFn: async () => {
+      const productsResponse = await axiosApi.get<MessageType>('/');
+      return productsResponse.data;
+    },
+  });
+  
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target;
     setState(prevState => ({
@@ -20,63 +28,33 @@ const TextForm = () => {
     }))
   };
   
-  const onSubmitForm = async (e: React.FormEvent) => {
-    e.preventDefault();
-  }
-  
   const mutation = useMutation({
     mutationFn: async (message: MessageType) => {
-      await axiosApi.post('/encode', {
+      await axiosApi.post('/', {
         ...message,
       });
     },
   });
   
-  const fetchDecodedMessage = useCallback(async () => {
-    const response = await axiosApi.get<MessageType>('/');
-    const message = response.data;
-    
-    return setState(prevState => ({
-      ...prevState,
-      decode: message.message
-    }))
-  }, []);
-  
-  const fetchEncodedMessage = useCallback(async () => {
-    const response = await axiosApi.get<MessageType>('/');
-    const message = response.data;
-    
-    return setState(prevState => ({
-      ...prevState,
-      encode: message.message
-    }))
-  }, [])
-  
-  
-  const handleEncode = async () => {
+  const handleEncode = async (e: React.FormEvent) => {
+    e.preventDefault();
     const newMessage: MessageType = {
       password: state.password,
       message: state.encode,
     }
     await mutation.mutateAsync(newMessage);
-    await fetchDecodedMessage();
-    console.log('encoded')
-  };
-  
-  const handleDecode = async () => {
-    const newMessage: MessageType = {
-      password: state.password,
-      message: state.decode,
-    }
-    await mutation.mutateAsync(newMessage);
-    await fetchEncodedMessage()
-    console.log('decoded')
     
+    if (!isLoading && messageResponse) {
+      setState(prevState => ({
+        ...prevState,
+        decode: messageResponse.message
+      }))
+    }
   };
   
   return (
     <Grid container direction="column" spacing={2} sx={{mt: 2}}>
-      <form onSubmit={onSubmitForm}>
+      <form>
         <Grid item xs sx={{mb: 2}}>
           <TextField
             id="encode"
@@ -105,19 +83,19 @@ const TextForm = () => {
             endIcon={<SendIcon/>}
             sx={{mr: 3}}
             disabled={mutation.isPending}
-            onSubmit={handleEncode}
+            onClick={handleEncode}
           >
             Encode
           </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            endIcon={<SendIcon/>}
-            disabled={mutation.isPending}
-            onSubmit={handleDecode}
-          >
-            Decode
-          </Button>
+          {/*<Button*/}
+          {/*  type="submit"*/}
+          {/*  variant="contained"*/}
+          {/*  endIcon={<SendIcon/>}*/}
+          {/*  disabled={mutation.isPending}*/}
+          {/*  onClick={handleDecode}*/}
+          {/*>*/}
+          {/*  Decode*/}
+          {/*</Button>*/}
         </Grid>
         <Grid item xs sx={{mb: 2}}>
           <TextField
