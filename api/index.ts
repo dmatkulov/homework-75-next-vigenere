@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import {MessageType} from "./types";
+import {MessageData} from "./types";
 const Caesar = require('caesar-salad').Caesar;
 
 const app = express();
@@ -9,26 +9,35 @@ const port = 8000;
 app.use(express.json());
 app.use(cors());
 
-app.get('/', (req, res) => {
-  const { password, message } = req.body;
-  
-  const encodedText = Caesar.Cipher(password).crypt(message);
-  const newMessage: MessageType = {
-    password,
-    message: encodedText
-  }
-  res.json(newMessage);
+let encodedData: MessageData = {
+  text: ''
+};
+
+let decodedData: MessageData = {
+  text: ''
+};
+
+app.get('/encode', (req, res) => {
+  res.send(encodedData);
+})
+
+app.get('/encode', (req, res) => {
+  res.send(decodedData);
+})
+
+app.post('/encode', (req, res) => {
+  const { password, message: text } = req.body;
+  encodedData.text = Caesar.Cipher(password).crypt(text);
+  console.log('posted encode')
+  res.json(encodedData);
 });
 
-app.post('/', (req, res) => {
-  const { password, message } = req.body;
+app.post('/decode', (req, res) => {
+  const { password, message: text } = req.body;
   
-  const encodedText = Caesar.Cipher(password).crypt(message);
-  const newMessage: MessageType = {
-    password,
-    message: encodedText
-  }
-  res.json(newMessage);
+  decodedData.text = Caesar.Decipher(password).crypt(text);
+  console.log('posted decode')
+  res.json(decodedData);
 });
 
 app.listen(port, () => {

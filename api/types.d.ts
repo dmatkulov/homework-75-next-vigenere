@@ -1,6 +1,6 @@
 export interface MessageType {
   password: string;
-  message: string;
+  text: string;
 }
 
 export interface MessageMutation {
@@ -8,3 +8,5 @@ export interface MessageMutation {
   encode: string;
   decode: string;
 }
+
+export type MessageData = Omit<MessageType, 'password'>

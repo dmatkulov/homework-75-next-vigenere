@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {Button, Grid, TextField} from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import {MessageMutation, MessageType} from "@/src/types";
+import {MessageData, MessageMutation, MessageType} from "@/src/types";
 import {useMutation, useQuery} from "@tanstack/react-query";
 import axiosApi from "@/src/axiosApi";
 
@@ -11,14 +11,6 @@ const TextForm = () => {
     encode: '',
     decode: ''
   })
-  
-  const {data: messageResponse, isLoading} = useQuery({
-    queryKey: ['messages'],
-    queryFn: async () => {
-      const productsResponse = await axiosApi.get<MessageType>('/');
-      return productsResponse.data;
-    },
-  });
   
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target;
@@ -30,26 +22,28 @@ const TextForm = () => {
   
   const mutation = useMutation({
     mutationFn: async (message: MessageType) => {
-      await axiosApi.post('/', {
-        ...message,
-      });
-    },
+      await axiosApi.post('/encode', message);
+    }
   });
+  
+  const fetchDecodedMessage = useCallback(async () => {
+    const response = await axiosApi.get<MessageData>('/');
+    const textData = response.data;
+    
+    return setState(prevState => ({
+      ...prevState,
+      decode: textData.text
+    }))
+  }, []);
   
   const handleEncode = async (e: React.FormEvent) => {
     e.preventDefault();
     const newMessage: MessageType = {
       password: state.password,
-      message: state.encode,
+      text: state.encode,
     }
     await mutation.mutateAsync(newMessage);
-    
-    if (!isLoading && messageResponse) {
-      setState(prevState => ({
-        ...prevState,
-        decode: messageResponse.message
-      }))
-    }
+    await fetchDecodedMessage();
   };
   
   return (
@@ -87,15 +81,6 @@ const TextForm = () => {
           >
             Encode
           </Button>
-          {/*<Button*/}
-          {/*  type="submit"*/}
-          {/*  variant="contained"*/}
-          {/*  endIcon={<SendIcon/>}*/}
-          {/*  disabled={mutation.isPending}*/}
-          {/*  onClick={handleDecode}*/}
-          {/*>*/}
-          {/*  Decode*/}
-          {/*</Button>*/}
         </Grid>
         <Grid item xs sx={{mb: 2}}>
           <TextField
