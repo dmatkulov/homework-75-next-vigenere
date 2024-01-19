@@ -1,6 +1,7 @@
-export interface MessageType {
-  password: string;
-  text: string;
+export interface EncodedData {
+  encoded: string
 }
 
-export type MessageData = Omit<MessageType, 'password'>
+export interface DecodedData {
+  decoded: string
+}

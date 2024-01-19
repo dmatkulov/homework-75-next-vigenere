@@ -1,6 +1,6 @@
 'use client';
 import { Container, CssBaseline, ThemeProvider } from '@mui/material';
-import theme from '../theme';
+import theme from '@/src/theme';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
